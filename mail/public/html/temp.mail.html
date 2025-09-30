@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="km" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ប្រព័ន្ធគ្រប់គ្រងប្រវត្តិរូប</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <style>
+        body { font-family: 'Kantumruy Pro', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .form-input {
+            @apply w-full px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all duration-300;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex flex-col items-center justify-center z-50 hidden">
+        <svg class="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <p class="text-white text-lg">កំពុងដំណើរការ...</p>
+    </div>
+
+    <!-- Container for all views -->
+    <div id="app-container" class="w-full max-w-md">
+
+        <!-- Login View -->
+        <div id="login-view">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 text-center">
+                <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">ចូលគណនី</h1>
+                <p class="text-gray-500 dark:text-gray-400 mb-6">សូមស្វាគមន៍មកកាន់គេហទំព័ររបស់យើង</p>
+                <form id="login-form" class="space-y-4">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+                        </span>
+                        <input type="email" id="login-email" placeholder="អ៊ីមែល" class="form-input pl-10" required>
+                    </div>
+                    <div class="relative">
+                         <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+                        </span>
+                        <input type="password" id="login-password" placeholder="ពាក្យសម្ងាត់" class="form-input pl-10" required>
+                    </div>
+                    <p id="login-error" class="text-red-500 text-sm text-left hidden"></p>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition">ចូលគណនី</button>
+                </form>
+                <div class="my-4 flex items-center">
+                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                    <span class="flex-shrink mx-4 text-gray-400">ឬ</span>
+                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                </div>
+                <button type="button" id="google-signin-btn-login" class="w-full bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 font-bold py-3 rounded-lg flex items-center justify-center gap-3 transition">
+                    <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C42.022,35.31,44,30.038,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
+                    <span>ចូលដោយ Google</span>
+                </button>
+                <p class="mt-6 text-sm">
+                    មិនទាន់មានគណនី? <a href="#" id="show-signup" class="font-semibold text-blue-500 hover:underline">ចុះឈ្មោះនៅទីនេះ</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Signup View -->
+        <div id="signup-view" class="hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 text-center">
+                <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">បង្កើតគណនីថ្មី</h1>
+                <p class="text-gray-500 dark:text-gray-400 mb-6">ចាប់ផ្តើមដំណើររបស់អ្នកជាមួយយើង</p>
+                <form id="signup-form" class="space-y-4">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                        </span>
+                        <input type="text" id="signup-name" placeholder="ឈ្មោះ" class="form-input pl-10" required>
+                    </div>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+                        </span>
+                        <input type="email" id="signup-email" placeholder="អ៊ីមែល" class="form-input pl-10" required>
+                    </div>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+                        </span>
+                        <input type="password" id="signup-password" placeholder="ពាក្យសម្ងាត់" class="form-input pl-10" required>
+                    </div>
+                    <p id="signup-error" class="text-red-500 text-sm text-left hidden"></p>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition">ចុះឈ្មោះ</button>
+                </form>
+                 <div class="my-4 flex items-center">
+                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                    <span class="flex-shrink mx-4 text-gray-400">ឬ</span>
+                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                </div>
+                <button type="button" id="google-signin-btn-signup" class="w-full bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 font-bold py-3 rounded-lg flex items-center justify-center gap-3 transition">
+                    <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C42.022,35.31,44,30.038,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
+                    <span>ចុះឈ្មោះជាមួយ Google</span>
+                </button>
+                <p class="mt-6 text-sm">
+                    មានគណនីរួចហើយ? <a href="#" id="show-login" class="font-semibold text-blue-500 hover:underline">ចូលគណនីនៅទីនេះ</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Profile View -->
+        <div id="profile-view" class="hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+                <div class="text-center mb-6">
+                    <img id="user-avatar" src="https://placehold.co/96x96/E2E8F0/A0AEC0?text=P" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-blue-500">
+                    <h2 id="user-name" class="text-2xl font-bold">ឈ្មោះអ្នកប្រើប្រាស់</h2>
+                    <p id="user-email" class="text-gray-500 dark:text-gray-400">user@example.com</p>
+                </div>
+                <div class="space-y-4">
+                    <button id="edit-profile-btn" class="w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 font-bold py-3 rounded-lg transition">កែប្រែប្រវត្តិរូប</button>
+                    <button id="signout-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg transition">ចាកចេញ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full max-w-sm">
+            <h2 class="text-2xl font-bold mb-4">កែប្រែឈ្មោះ</h2>
+            <form id="edit-profile-form">
+                <div class="space-y-4">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                        </span>
+                        <input type="text" id="new-name" placeholder="ឈ្មោះថ្មី" class="form-input pl-10" required>
+                    </div>
+                    <div class="flex gap-4">
+                        <button type="button" id="cancel-edit-btn" class="w-full bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold py-2 rounded-lg transition">បោះបង់</button>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition">រក្សាទុក</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAZR8oWn6DznsoCcvT2UOFMB5xPFRab1t4",
+        authDomain: "my-account-50d7d.firebaseapp.com",
+        projectId: "my-account-50d7d",
+        storageBucket: "my-account-50d7d.appspot.com",
+        messagingSenderId: "876814882771",
+        appId: "1:876814882771:web:954572227625f44a3a4126",
+        measurementId: "G-5CSW2NC58D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // --- Views & Overlays ---
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loginView = document.getElementById('login-view');
+        const signupView = document.getElementById('signup-view');
+        const profileView = document.getElementById('profile-view');
+        
+        // --- Forms & Buttons ---
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const signoutBtn = document.getElementById('signout-btn');
+        const showSignupLink = document.getElementById('show-signup');
+        const showLoginLink = document.getElementById('show-login');
+        const googleSignInBtnLogin = document.getElementById('google-signin-btn-login');
+        const googleSignInBtnSignup = document.getElementById('google-signin-btn-signup');
+        const editProfileBtn = document.getElementById('edit-profile-btn');
+        const editProfileModal = document.getElementById('edit-profile-modal');
+        const editProfileForm = document.getElementById('edit-profile-form');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+
+        // --- Profile Display Elements ---
+        const userAvatar = document.getElementById('user-avatar');
+        const userNameEl = document.getElementById('user-name');
+        const userEmailEl = document.getElementById('user-email');
+
+        // --- AUTHENTICATION STATE ---
+        onAuthStateChanged(auth, async (user) => {
+            loadingOverlay.classList.remove('hidden');
+            if (user) {
+                // User is signed in
+                const userDocRef = doc(db, "artifacts", appId, "users", user.uid);
+                const docSnap = await getDoc(userDocRef);
+                const displayName = (docSnap.exists() && docSnap.data().displayName) ? docSnap.data().displayName : user.displayName;
+
+                userNameEl.textContent = displayName;
+                userEmailEl.textContent = user.email;
+                userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${displayName.charAt(0)}&background=random&color=fff`;
+
+                loginView.classList.add('hidden');
+                signupView.classList.add('hidden');
+                profileView.classList.remove('hidden');
+            } else {
+                // User is signed out
+                loginView.classList.remove('hidden');
+                signupView.classList.add('hidden');
+                profileView.classList.add('hidden');
+            }
+            loadingOverlay.classList.add('hidden');
+        });
+        
+        // --- HANDLERS ---
+        const handleGoogleSignIn = async () => {
+            const provider = new GoogleAuthProvider();
+            loadingOverlay.classList.remove('hidden');
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+
+                const userDocRef = doc(db, "artifacts", appId, "users", user.uid);
+                const docSnap = await getDoc(userDocRef);
+
+                if (!docSnap.exists()) {
+                    await setDoc(userDocRef, {
+                        displayName: user.displayName,
+                        email: user.email,
+                    });
+                }
+            } catch (error) {
+                console.error("Google sign-in error", error);
+                const errorEl = document.getElementById('login-error');
+                errorEl.textContent = "បរាជ័យក្នុងការចូលដោយ Google: " + error.code;
+                errorEl.classList.remove('hidden');
+            } finally {
+                loadingOverlay.classList.add('hidden');
+            }
+        };
+
+        // --- EVENT LISTENERS ---
+        googleSignInBtnLogin.addEventListener('click', handleGoogleSignIn);
+        googleSignInBtnSignup.addEventListener('click', handleGoogleSignIn);
+
+        // Show/Hide Login & Signup Forms
+        showSignupLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginView.classList.add('hidden');
+            signupView.classList.remove('hidden');
+        });
+
+        showLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            signupView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+        });
+
+        // Signup Form Submission
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loadingOverlay.classList.remove('hidden');
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const errorEl = document.getElementById('signup-error');
+            
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                await updateProfile(user, { displayName: name });
+                const userDocRef = doc(db, "artifacts", appId, "users", user.uid);
+                await setDoc(userDocRef, {
+                    displayName: name,
+                    email: user.email,
+                });
+                errorEl.classList.add('hidden');
+            } catch (error) {
+                errorEl.textContent = "បរាជ័យក្នុងការចុះឈ្មោះ: " + error.message;
+                errorEl.classList.remove('hidden');
+            } finally {
+                loadingOverlay.classList.add('hidden');
+            }
+        });
+
+        // Login Form Submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loadingOverlay.classList.remove('hidden');
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                errorEl.classList.add('hidden');
+            } catch (error) {
+                errorEl.textContent = "អ៊ីមែល ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ។";
+                errorEl.classList.remove('hidden');
+            } finally {
+                loadingOverlay.classList.add('hidden');
+            }
+        });
+
+        // Sign Out
+        signoutBtn.addEventListener('click', async () => {
+            loadingOverlay.classList.remove('hidden');
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Sign out error", error);
+            } finally {
+                loadingOverlay.classList.add('hidden');
+            }
+        });
+
+        // Edit Profile Modal
+        editProfileBtn.addEventListener('click', () => {
+            document.getElementById('new-name').value = userNameEl.textContent;
+            editProfileModal.classList.remove('hidden');
+        });
+
+        cancelEditBtn.addEventListener('click', () => {
+            editProfileModal.classList.add('hidden');
+        });
+
+        editProfileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loadingOverlay.classList.remove('hidden');
+            const newName = document.getElementById('new-name').value;
+            const user = auth.currentUser;
+
+            if (user && newName) {
+                try {
+                    // Update Firestore first
+                    const userDocRef = doc(db, "artifacts", appId, "users", user.uid);
+                    await updateDoc(userDocRef, { displayName: newName });
+
+                    // Then update Auth profile
+                    await updateProfile(user, { displayName: newName });
+                    
+                    // Update UI
+                    userNameEl.textContent = newName;
+                    userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${newName.charAt(0)}&background=random&color=fff`;
+                    
+                    editProfileModal.classList.add('hidden');
+                } catch (error) {
+                    console.error("Error updating profile: ", error);
+                    alert("បរាជ័យក្នុងការកែប្រែប្រវត្តិរូប។");
+                } finally {
+                    loadingOverlay.classList.add('hidden');
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>
+
