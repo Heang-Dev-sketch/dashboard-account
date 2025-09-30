@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="km" class=""> <!-- Add class="dark" here to enable dark mode by default -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mail Pro</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Kantumruy Pro for Khmer -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Kantumruy Pro', sans-serif;
+        }
+        .email-body a {
+            color: #3b82f6; /* dark:text-blue-400 */
+        }
+        .dark .email-body a {
+            color: #60a5fa;
+        }
+        .loader {
+            border-top-color: #3498db;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        /* Smooth transitions for dark mode */
+        body, .bg-white, .bg-gray-100, .bg-gray-50, .bg-gray-800, .bg-gray-900 {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        /* Custom appearance for select dropdown */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236B7280' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1em 1em;
+            padding-right: 2.5rem; /* Make space for arrow */
+        }
+        .dark select {
+             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239CA3AF' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800 bg-gray-100 dark:bg-gray-900 dark:text-gray-200">
+
+    <!-- Main Container -->
+    <div id="app-container" class="min-h-screen flex flex-col items-center justify-center p-4">
+
+        <!-- Loading Spinner -->
+        <div id="loader" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div>
+        </div>
+        
+        <!-- Custom Alert Modal -->
+        <div id="alert-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 md:w-1/3 text-center">
+                <h3 id="alert-title" class="text-lg font-bold text-red-600 dark:text-red-500 mb-4"></h3>
+                <p id="alert-message" class="text-gray-700 dark:text-gray-300"></p>
+                <button id="alert-close" class="mt-6 bg-blue-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-600 transition duration-300">បិទ</button>
+            </div>
+        </div>
+
+        <!-- History Modal -->
+        <div id="history-modal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-40 hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-11/12 md:w-1/2 lg:w-1/3 max-h-[80vh] flex flex-col">
+                <div class="flex justify-between items-center border-b dark:border-gray-700 pb-3 mb-4">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">ប្រវត្តិអ៊ីមែល</h2>
+                    <button id="close-history-modal" class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 text-3xl">&times;</button>
+                </div>
+                <div id="history-list-container" class="flex-grow overflow-y-auto pr-2">
+                    <!-- History items will be injected here -->
+                </div>
+                <div class="mt-4 pt-4 border-t dark:border-gray-700">
+                    <button id="clear-history-btn-modal" class="w-full bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-300">សម្អាតប្រវត្តិទាំងអស់</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About Modal -->
+        <div id="about-modal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-40 hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-11/12 md:w-1/2 lg:w-1/3 max-h-[80vh] flex flex-col">
+                <div class="flex justify-between items-center border-b dark:border-gray-700 pb-3 mb-4">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">អំពី Mail Pro</h2>
+                    <button id="close-about-modal" class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 text-3xl">&times;</button>
+                </div>
+                <div class="flex-grow overflow-y-auto pr-2 text-gray-700 dark:text-gray-300 space-y-4">
+                    <p>Mail Pro គឺជាសេវាកម្មអ៊ីមែលបណ្ដោះអាសន្នឥតគិតថ្លៃ ដែលអនុញ្ញាតឱ្យអ្នកទទួលបានអ៊ីមែលនៅអាសយដ្ឋានបណ្ដោះអាសន្ន ហើយវានឹងបំផ្លាញចោលដោយខ្លួនឯងបន្ទាប់ពីរយៈពេលជាក់លាក់ណាមួយ។</p>
+                    <p>វាត្រូវបានគេស្គាល់ផងដែរថាជា temp-mail, 10minutemail, disposable-email, fake-mail ឬ trash-mail។ គេហទំព័រ និងកម្មវិធីជាច្រើនទាមទារឱ្យអ្នកប្រើប្រាស់ចុះឈ្មោះដោយប្រើអាសយដ្ឋានអ៊ីមែល មុនពេលអាចមើលមាតិកា បញ្ចេញមតិ ឬទាញយកអ្វីមួយ។ Mail Pro គឺជាសេវាកម្មអ៊ីមែលបណ្ដោះអាសន្នដ៏ទំនើបបំផុត ដែលជួយអ្នកជៀសវាងសារឥតបានការ និងរក្សាសុវត្ថិភាព។</p>
+                </div>
+                 <button id="about-modal-close-btn" class="mt-6 bg-blue-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-600 transition duration-300">យល់ព្រម</button>
+            </div>
+        </div>
+
+
+        <!-- Login/Signup View -->
+        <div id="auth-view" class="w-full max-w-md hidden">
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg text-center">
+                <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-2">សូមស្វាគមន៍!</h1>
+                <p class="text-gray-500 dark:text-gray-400 mb-8">ចូលគណនីដើម្បីរក្សាទុកប្រវត្តិអ៊ីមែលរបស់អ្នក</p>
+                
+                <button id="google-login-btn" class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold py-3 px-4 rounded-lg flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-600 transition duration-300 mb-4">
+                    <svg class="w-6 h-6 mr-3" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.012,35.426,44,30.138,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
+                    ចូលដោយគណនី Google
+                </button>
+                
+                <div class="my-4 flex items-center">
+                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                    <span class="flex-shrink mx-4 text-gray-400 dark:text-gray-500">ឬ</span>
+                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                </div>
+                
+                <div id="email-login-form">
+                    <input id="login-email" type="email" placeholder="អ៊ីមែល" class="w-full mb-4 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <input id="login-password" type="password" placeholder="ពាក្យសម្ងាត់" class="w-full mb-4 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <button id="email-login-btn" class="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-600 transition duration-300">ចូលគណនី</button>
+                    <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">មិនទាន់មានគណនី? <a href="#" id="show-signup-link" class="font-semibold text-blue-500 hover:underline">ចុះឈ្មោះនៅទីនេះ</a></p>
+                </div>
+                
+                <div id="email-signup-form" class="hidden">
+                    <input id="signup-email" type="email" placeholder="អ៊ីមែល" class="w-full mb-4 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <div class="relative w-full mb-4">
+                        <input id="signup-password" type="password" placeholder="ពាក្យសម្ងាត់" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <button type="button" id="toggle-signup-password" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <svg id="eye-icon-signup" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <svg id="eye-off-icon-signup" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .946-3.11 3.29-5.6 6.198-6.814M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.58 17.58l-2.08-2.08m-1.414-1.414L6.42 6.42M21 21L3 3" /></svg>
+                        </button>
+                    </div>
+                     <div class="relative w-full mb-4">
+                        <input id="signup-password-confirm" type="password" placeholder="បញ្ជាក់ពាក្យសម្ងាត់" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                         <button type="button" id="toggle-signup-password-confirm" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <svg id="eye-icon-confirm" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <svg id="eye-off-icon-confirm" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .946-3.11 3.29-5.6 6.198-6.814M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.58 17.58l-2.08-2.08m-1.414-1.414L6.42 6.42M21 21L3 3" /></svg>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-center mb-4">
+                        <input id="robot-check" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="robot-check" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">ខ្ញុំមិនមែនជាមនុស្សយន្ត</label>
+                    </div>
+                    <button id="email-signup-btn" class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>បង្កើតគណនី</button>
+                    <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">មានគណនីរួចហើយ? <a href="#" id="show-login-link" class="font-semibold text-blue-500 hover:underline">ចូលគណនីនៅទីនេះ</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App View -->
+        <div id="app-view" class="w-full max-w-6xl hidden">
+            <header class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                <div class="flex items-center space-x-3">
+                    <svg class="h-10 w-10 text-blue-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 8.5C2 7.11929 3.11929 6 4.5 6H19.5C20.8807 6 22 7.11929 22 8.5V17.5C22 18.8807 20.8807 20 19.5 20H4.5C3.11929 20 2 18.8807 2 17.5V8.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 7L10.4558 12.0191C11.4239 12.6713 12.5761 12.6713 13.5442 12.0191L21 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Mail Pro</h1>
+                </div>
+                
+                <!-- User Info Area -->
+                <div id="user-info" class="hidden items-center space-x-4 relative">
+                    <!-- Desktop Menu -->
+                    <div class="hidden sm:flex items-center space-x-4">
+                        <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                            <img id="profile-img-desktop" src="" alt="Profile Picture" class="h-full w-full object-cover hidden">
+                            <svg id="profile-svg-desktop" xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-600 dark:text-gray-300 p-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        </div>
+                        <span id="user-display-desktop" class="text-gray-600 dark:text-gray-300 font-semibold truncate"></span>
+                        <button id="history-btn-desktop" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-300">ប្រវត្តិ</button>
+                        <button id="logout-btn-desktop" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-300">ចាកចេញ</button>
+                    </div>
+                    <!-- Mobile Menu Button and Dropdown -->
+                    <div class="sm:hidden">
+                        <button id="profile-menu-btn" class="flex items-center justify-center h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                            <img id="profile-img" src="" alt="Profile Picture" class="h-full w-full object-cover hidden">
+                            <svg id="profile-svg" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        </button>
+                        <div id="profile-menu-dropdown" class="absolute top-12 right-0 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border dark:border-gray-700 z-30 hidden">
+                            <div class="p-4 border-b dark:border-gray-700">
+                                <p class="font-bold text-gray-800 dark:text-gray-200">គណនី</p>
+                                <p id="user-display-mobile" class="text-sm text-gray-500 dark:text-gray-400 truncate"></p>
+                            </div>
+                            <nav class="p-2">
+                                <a href="#" id="history-btn-mobile" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    ប្រវត្តិ
+                                </a>
+                                <a href="#" id="about-btn-mobile" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    អំពី​យើង
+                                </a>
+                                <div class="flex items-center justify-between px-4 py-2 text-gray-700 dark:text-gray-300 rounded-md">
+                                    <label class="flex items-center cursor-pointer">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                                        Dark Mode
+                                    </label>
+                                    <button id="dark-mode-toggle" class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors bg-gray-200">
+                                        <span id="dark-mode-indicator" class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform translate-x-1"></span>
+                                    </button>
+                                </div>
+                                <hr class="my-2 border-gray-200 dark:border-gray-700">
+                                <a href="#" id="logout-btn-mobile" class="flex items-center px-4 py-2 text-red-500 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                    ចាកចេញ
+                                </a>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="guest-info">
+                    <button id="show-login-view-btn" class="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300">ចូលគណនី / ចុះឈ្មោះ</button>
+                </div>
+            </header>
+
+            <main class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                 <div class="bg-gray-100 dark:bg-gray-900/50 p-4 rounded-lg mb-6">
+                    <label class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 block">អាសយដ្ឋានអ៊ីមែលបច្ចុប្បន្ន</label>
+                    <div class="flex flex-col sm:flex-row items-stretch space-y-2 sm:space-y-0 sm:space-x-4">
+                        <div class="relative flex-grow w-full flex">
+                            <input id="current-email-user" type="text" class="w-full bg-white dark:bg-gray-700 text-lg font-mono p-3 border border-gray-300 dark:border-gray-600 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 z-10" readonly>
+                            <select id="domain-select" class="bg-gray-200 dark:bg-gray-700/50 text-lg font-mono p-3 border-t border-b border-r border-gray-300 dark:border-gray-600 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+                            <span id="copy-feedback" class="absolute top-1/2 -translate-y-1/2 right-3 text-sm font-bold text-green-600 hidden z-20">បានចម្លង!</span>
+                        </div>
+                        <div class="flex space-x-2 w-full sm:w-auto">
+                            <button id="copy-btn" title="ចម្លង" class="p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300 flex-grow sm:flex-grow-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                            </button>
+                            <button id="refresh-btn" title="ផ្ទុកសារឡើងវិញ" class="p-3 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-300 flex-grow sm:flex-grow-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M20 4l-4 4M4 20l4-4" /></svg>
+                            </button>
+                            <button id="new-address-btn" title="បង្កើតអាសយដ្ឋានថ្មី" class="p-3 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition duration-300 flex-grow sm:flex-grow-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-4">
+                        <h2 class="text-xl font-bold mb-4">ប្រអប់សំបុត្រ</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">បញ្ជីសារដែលបានទទួល។</p>
+                        <div id="inbox-list" class="bg-gray-50 dark:bg-gray-900/50 h-[50vh] md:h-[60vh] overflow-y-auto rounded-lg border dark:border-gray-700">
+                            <div id="inbox-placeholder" class="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500 p-4 text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                <p class="font-semibold">កំពុងរង់ចាំអ៊ីមែលចូល...</p>
+                                <p class="text-sm">សារថ្មីៗនឹងបង្ហាញនៅទីនេះដោយស្វ័យប្រវត្តិ។</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-8">
+                        <h2 class="text-xl font-bold mb-4">ផ្ទាំងបង្ហាញសារ</h2>
+                         <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">ខ្លឹមសារលម្អិតនៃសារដែលបានជ្រើសរើស។</p>
+                        <div id="email-preview" class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 h-[50vh] md:h-[60vh] overflow-y-auto p-4">
+                            <div id="preview-placeholder" class="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500 text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                <p class="font-semibold">សូមជ្រើសរើសអ៊ីមែលដើម្បីអាន</p>
+                                <p class="text-sm">ខ្លឹមសាររបស់អ៊ីមែលនឹងបង្ហាញនៅត្រង់នេះ។</p>
+                            </div>
+                            <div id="email-content" class="hidden">
+                                <div class="border-b dark:border-gray-700 pb-4 mb-4">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400"><strong>ប្រធានបទ៖</strong> <span id="email-subject"></span></p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400"><strong>មកពី៖</strong> <span id="email-from"></span></p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400"><strong>កាលបរិច្ឆេទ៖</strong> <span id="email-date"></span></p>
+                                </div>
+                                <div id="email-body-html" class="email-body prose max-w-none"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <footer class="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+        <p>&copy; 2025 Mail Pro | បង្កើត​ឡើង​ដោយ Lao Limheang | <a href="#" id="about-btn-footer" class="hover:underline">អំពី​យើង</a></p>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, onSnapshot, orderBy, limit, serverTimestamp, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "AIzaSyAZR8oWn6DznsoCcvT2UOFMB5xPFRab1t4", authDomain: "my-account-50d7d.firebaseapp.com", projectId: "my-account-50d7d", storageBucket: "my-account-50d7d.firebasestorage.app", messagingSenderId: "876814882771", appId: "1:876814882771:web:954572227625f44a3a4126", measurementId: "G-5CSW2NC58D" };
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        // DOM Elements
+        const loader = document.getElementById('loader');
+        const authView = document.getElementById('auth-view');
+        const appView = document.getElementById('app-view');
+        const userInfo = document.getElementById('user-info');
+        const guestInfo = document.getElementById('guest-info');
+        const userDisplayDesktop = document.getElementById('user-display-desktop');
+        const userDisplayMobile = document.getElementById('user-display-mobile');
+        const logoutBtnDesktop = document.getElementById('logout-btn-desktop');
+        const logoutBtnMobile = document.getElementById('logout-btn-mobile');
+        const showLoginViewBtn = document.getElementById('show-login-view-btn');
+        const historyBtnDesktop = document.getElementById('history-btn-desktop');
+        const historyBtnMobile = document.getElementById('history-btn-mobile');
+        const profileMenuBtn = document.getElementById('profile-menu-btn');
+        const profileMenuDropdown = document.getElementById('profile-menu-dropdown');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const darkModeIndicator = document.getElementById('dark-mode-indicator');
+        const profileImg = document.getElementById('profile-img');
+        const profileSvg = document.getElementById('profile-svg');
+        const profileImgDesktop = document.getElementById('profile-img-desktop');
+        const profileSvgDesktop = document.getElementById('profile-svg-desktop');
+
+
+        const historyModal = document.getElementById('history-modal');
+        const closeHistoryModal = document.getElementById('close-history-modal');
+        const historyListContainer = document.getElementById('history-list-container');
+        const clearHistoryBtnModal = document.getElementById('clear-history-btn-modal');
+        
+        const aboutModal = document.getElementById('about-modal');
+        const closeAboutModal = document.getElementById('close-about-modal');
+        const aboutBtnMobile = document.getElementById('about-btn-mobile');
+        const aboutBtnFooter = document.getElementById('about-btn-footer');
+        const aboutModalCloseBtn = document.getElementById('about-modal-close-btn');
+
+        const googleLoginBtn = document.getElementById('google-login-btn');
+        const emailLoginForm = document.getElementById('email-login-form');
+        const emailSignupForm = document.getElementById('email-signup-form');
+        const showSignupLink = document.getElementById('show-signup-link');
+        const showLoginLink = document.getElementById('show-login-link');
+        const loginEmailInput = document.getElementById('login-email');
+        const loginPasswordInput = document.getElementById('login-password');
+        const emailLoginBtn = document.getElementById('email-login-btn');
+        const signupEmailInput = document.getElementById('signup-email');
+        const signupPasswordInput = document.getElementById('signup-password');
+        const signupPasswordConfirmInput = document.getElementById('signup-password-confirm');
+        const emailSignupBtn = document.getElementById('email-signup-btn');
+        const robotCheck = document.getElementById('robot-check');
+        
+        const currentEmailUserEl = document.getElementById('current-email-user');
+        const domainSelectEl = document.getElementById('domain-select');
+        const copyBtn = document.getElementById('copy-btn');
+        const copyFeedback = document.getElementById('copy-feedback');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const newAddressBtn = document.getElementById('new-address-btn');
+        const inboxListEl = document.getElementById('inbox-list');
+        const inboxPlaceholder = document.getElementById('inbox-placeholder');
+        const previewPlaceholder = document.getElementById('preview-placeholder');
+        const emailContentEl = document.getElementById('email-content');
+        const emailSubjectEl = document.getElementById('email-subject');
+        const emailFromEl = document.getElementById('email-from');
+        const emailDateEl = document.getElementById('email-date');
+        const emailBodyHtmlEl = document.getElementById('email-body-html');
+        
+        const alertModal = document.getElementById('alert-modal');
+        const alertTitle = document.getElementById('alert-title');
+        const alertMessage = document.getElementById('alert-message');
+        const alertClose = document.getElementById('alert-close');
+        
+        let currentEmailAddress = null, sessionToken = null, inboxCheckInterval = null, activeMessageId = null, emailHistory = [], historyUnsubscribe = null;
+        const availableDomains = ['guerrillamail.com', 'sharklasers.com', 'grr.la', 'spam4.me', 'guerrillamailblock.com'];
+
+        const showLoader = () => loader.classList.remove('hidden');
+        const hideLoader = () => loader.classList.add('hidden');
+        const showAlert = (title, message) => { alertTitle.textContent = title; alertMessage.textContent = message; alertModal.classList.remove('hidden'); };
+        const hideAlert = () => alertModal.classList.add('hidden');
+        alertClose.addEventListener('click', hideAlert);
+
+        const khmerErrorMessages = {
+            "auth/invalid-email": "ទម្រង់អ៊ីមែលមិនត្រឹមត្រូវទេ។ សូមពិនិត្យម្តងទៀត។",
+            "auth/user-not-found": "រកមិនឃើញអ្នកប្រើប្រាស់ជាមួយនឹងអ៊ីមែលនេះទេ។",
+            "auth/wrong-password": "ពាក្យសម្ងាត់មិនត្រឹមត្រូវទេ។ សូមព្យាយាមម្តងទៀត។",
+            "auth/email-already-in-use": "អ៊ីមែលនេះត្រូវបានប្រើប្រាស់រួចហើយ។",
+            "auth/weak-password": "ពាក្យសម្ងាត់ខ្សោយពេក។ ត្រូវមានយ៉ាងតិច 6 តួអក្សរ។",
+            "default": "មានកំហុសមួយបានកើតឡើង។ សូមពិនិត្យម្តងទៀត។"
+        };
+        const getKhmerErrorMessage = (errorCode) => khmerErrorMessages[errorCode] || khmerErrorMessages['default'];
+        
+        const populateDomains = () => {
+            domainSelectEl.innerHTML = '';
+            availableDomains.forEach(domain => {
+                const option = document.createElement('option');
+                option.value = domain;
+                option.textContent = `@${domain}`;
+                domainSelectEl.appendChild(option);
+            });
+        };
+
+        const applyTheme = () => {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+                darkModeToggle.classList.add('bg-blue-600');
+                darkModeIndicator.classList.add('translate-x-5');
+            } else {
+                document.documentElement.classList.remove('dark');
+                darkModeToggle.classList.remove('bg-blue-600');
+                darkModeIndicator.classList.remove('translate-x-5');
+            }
+        };
+        darkModeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            applyTheme();
+        });
+
+        const renderHistoryModal = () => {
+            historyListContainer.innerHTML = '';
+            if(emailHistory.length === 0) {
+                historyListContainer.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 p-4">មិនទាន់មានប្រវត្តិនៅឡើយទេ។</p>`;
+                return;
+            }
+            emailHistory.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'flex justify-between items-center p-3 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700';
+                const addressSpan = document.createElement('span');
+                addressSpan.className = 'font-mono text-sm text-gray-700 dark:text-gray-300 truncate';
+                addressSpan.textContent = item.address;
+                const useBtn = document.createElement('button');
+                useBtn.className = 'use-history-btn bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-md hover:bg-blue-600 transition-all flex-shrink-0';
+                useBtn.textContent = 'ប្រើ';
+                useBtn.addEventListener('click', async () => {
+                    if (item.address !== currentEmailAddress) {
+                        const [user, domain] = item.address.split('@');
+                        await updateEmailOnServer(user, domain, false, item.token);
+                    }
+                    historyModal.classList.add('hidden');
+                });
+                itemDiv.appendChild(addressSpan);
+                itemDiv.appendChild(useBtn);
+                historyListContainer.appendChild(itemDiv);
+            });
+        };
+        const loadHistoryFromFirestore = (userId) => {
+            const historyRef = collection(db, 'users', userId, 'history');
+            const q = query(historyRef, orderBy('createdAt', 'desc'), limit(50));
+            historyUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                emailHistory = [];
+                querySnapshot.forEach((doc) => { emailHistory.push({ ...doc.data(), id: doc.id }); });
+                renderHistoryModal();
+            }, (error) => { console.error("Error loading history: ", error); showAlert("កំហុស", "មិនអាចផ្ទុកប្រវត្តិបានទេ។"); });
+        };
+        const addAddressToHistory = async (address, token) => {
+            const user = auth.currentUser;
+            if (user && !user.isAnonymous && !emailHistory.some(item => item.address === address)) {
+                try {
+                    const historyRef = collection(db, 'users', user.uid, 'history');
+                    await addDoc(historyRef, { address: address, token: token, createdAt: serverTimestamp() });
+                } catch (error) { console.error("Error adding to history:", error); }
+            }
+        };
+        const clearHistory = async () => {
+            const user = auth.currentUser;
+            if (user && !user.isAnonymous) {
+                showLoader();
+                try {
+                    const historyRef = collection(db, 'users', user.uid, 'history');
+                    const querySnapshot = await getDocs(historyRef);
+                    const batch = writeBatch(db);
+                    querySnapshot.forEach((doc) => { batch.delete(doc.ref); });
+                    await batch.commit();
+                    historyModal.classList.add('hidden');
+                    showAlert("បានបញ្ចប់", "ប្រវត្តិអាសយដ្ឋានអ៊ីមែលត្រូវបានសម្អាត។");
+                } catch (error) { console.error("Error clearing history:", error); showAlert("កំហុស", "មិនអាចសម្អាតប្រវត្តិបានទេ។"); } finally { hideLoader(); }
+            }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (historyUnsubscribe) historyUnsubscribe();
+
+            if (user && !user.isAnonymous) {
+                // User is signed in
+                authView.classList.add('hidden');
+                appView.classList.remove('hidden');
+                userInfo.classList.remove('hidden');
+                guestInfo.classList.add('hidden');
+                const displayName = user.displayName || user.email;
+                const photoURL = user.photoURL;
+                userDisplayDesktop.textContent = displayName;
+                userDisplayMobile.textContent = displayName;
+                
+                [profileImg, profileImgDesktop].forEach(img => {
+                    if (photoURL) { img.src = photoURL; img.classList.remove('hidden'); } 
+                    else { img.classList.add('hidden'); }
+                });
+                [profileSvg, profileSvgDesktop].forEach(svg => {
+                    if (photoURL) { svg.classList.add('hidden'); } 
+                    else { svg.classList.remove('hidden'); }
+                });
+
+                loadHistoryFromFirestore(user.uid);
+                 if (!currentEmailAddress) await generateNewAddress();
+            } else {
+                // User is a guest or logged out
+                appView.classList.remove('hidden');
+                authView.classList.add('hidden');
+                userInfo.classList.add('hidden');
+                guestInfo.classList.remove('hidden');
+                emailHistory = [];
+                [profileImg, profileImgDesktop].forEach(img => img.classList.add('hidden'));
+                [profileSvg, profileSvgDesktop].forEach(svg => svg.classList.remove('hidden'));
+                if (!currentEmailAddress) await generateNewAddress();
+            }
+            if (!sessionToken) await getNewSession();
+            hideLoader();
+        });
+
+        const initialAuth = async () => {
+            showLoader();
+            populateDomains();
+            applyTheme();
+            try {
+                if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
+                else if (!auth.currentUser) await signInAnonymously(auth);
+            } catch (error) { console.error("Auth init failed:", error); showAlert("បញ្ហាការតភ្ជាប់", "មិនអាចភ្ជាប់ទៅសេវាកម្មបានទេ។"); }
+        };
+
+        const handleSignOut = async () => { showLoader(); await signOut(auth); currentEmailAddress = null; sessionToken = null; };
+
+        googleLoginBtn.addEventListener('click', async () => { showLoader(); try { await signInWithPopup(auth, googleProvider); } catch (error) { showAlert("កំហុសក្នុងការចូល", getKhmerErrorMessage(error.code)); } finally { hideLoader(); } });
+        emailLoginBtn.addEventListener('click', async () => { showLoader(); try { const email = loginEmailInput.value; const password = loginPasswordInput.value; await signInWithEmailAndPassword(auth, email, password); } catch (error) { showAlert("កំហុសក្នុងការចូល", getKhmerErrorMessage(error.code)); } finally { hideLoader(); } });
+        emailSignupBtn.addEventListener('click', async () => {
+             const email = signupEmailInput.value;
+             const password = signupPasswordInput.value;
+             const confirmPassword = signupPasswordConfirmInput.value;
+
+             if (password !== confirmPassword) {
+                 showAlert("កំហុសក្នុងការចុះឈ្មោះ", "ការបញ្ជាក់ពាក្យសម្ងាត់មិនត្រឹមត្រូវទេ។");
+                 return;
+             }
+            showLoader(); 
+            try { 
+                await createUserWithEmailAndPassword(auth, email, password); 
+            } catch (error) { 
+                showAlert("កំហុសក្នុងការចុះឈ្មោះ", getKhmerErrorMessage(error.code)); 
+            } finally { 
+                hideLoader(); 
+            } 
+        });
+        
+        logoutBtnDesktop.addEventListener('click', handleSignOut);
+        logoutBtnMobile.addEventListener('click', handleSignOut);
+        
+        showLoginViewBtn.addEventListener('click', () => { appView.classList.add('hidden'); authView.classList.remove('hidden'); });
+        showSignupLink.addEventListener('click', (e) => { e.preventDefault(); emailLoginForm.classList.add('hidden'); emailSignupForm.classList.remove('hidden'); });
+        showLoginLink.addEventListener('click', (e) => { e.preventDefault(); emailSignupForm.classList.add('hidden'); emailLoginForm.classList.remove('hidden'); });
+
+        const API_BASE = "https://api.guerrillamail.com/ajax.php";
+        const getNewSession = async () => {
+            try {
+                const response = await fetch(`${API_BASE}?f=get_email_address`);
+                if (!response.ok) throw new Error("Network response");
+                const data = await response.json();
+                sessionToken = data.sid_token;
+                return data;
+            } catch (error) { console.error("Failed to get session:", error); showAlert("កំហុសបណ្តាញ", "មិនអាចចាប់ផ្តើមសម័យថ្មីបានទេ។"); return null; }
+        };
+        const updateEmailOnServer = async (user, domain, shouldAddToHistory = true, newSessionToken = null) => {
+            showLoader();
+            stopInboxCheck();
+            inboxListEl.innerHTML = ''; inboxListEl.appendChild(inboxPlaceholder);
+            clearPreview();
+
+            if(newSessionToken) {
+                sessionToken = newSessionToken;
+            }
+
+            try {
+                if (!sessionToken) throw new Error("No session token");
+                const response = await fetch(`${API_BASE}?f=set_email_user&email_user=${user}&domain=${domain}&sid_token=${sessionToken}`);
+                if (!response.ok) throw new Error("Failed to set email");
+                const data = await response.json();
+                currentEmailAddress = data.email_addr;
+                currentEmailUserEl.value = user;
+                domainSelectEl.value = domain;
+                if (shouldAddToHistory) await addAddressToHistory(currentEmailAddress, sessionToken);
+                startInboxCheck();
+            } catch (error) { console.error("Failed to update email:", error); showAlert("កំហុស", "មិនអាចផ្លាស់ប្តូរអាសយដ្ឋានអ៊ីមែលបានទេ។"); } finally { hideLoader(); }
+        };
+        const generateNewAddress = async () => {
+            showLoader();
+            try {
+                const initialData = await getNewSession();
+                if (initialData) {
+                    const [user] = initialData.email_addr.split('@');
+                    const selectedDomain = domainSelectEl.value || availableDomains[0];
+                    await updateEmailOnServer(user, selectedDomain, true, initialData.sid_token);
+                }
+            } catch (error) { console.error("Generate new address failed", error); } finally { hideLoader(); }
+        };
+        const fetchInbox = async () => {
+            if (!currentEmailAddress || !sessionToken) return;
+            try {
+                const response = await fetch(`${API_BASE}?f=check_email&sid_token=${sessionToken}&seq=0`);
+                if (!response.ok) return;
+                const data = await response.json();
+                const messages = data.list.map(msg => ({ id: msg.mail_id, from: msg.mail_from, subject: msg.mail_subject, date: new Date(msg.mail_timestamp * 1000).toISOString() }));
+                renderInbox(messages);
+            } catch (error) { console.error("Failed to fetch inbox:", error); stopInboxCheck(); }
+        };
+        const fetchMessageContent = async (messageId) => {
+            showLoader();
+            try {
+                if (!sessionToken) throw new Error("No valid session");
+                const response = await fetch(`${API_BASE}?f=fetch_email&sid_token=${sessionToken}&email_id=${messageId}`);
+                if (!response.ok) throw new Error("Failed to fetch message content");
+                const messageData = await response.json();
+                const formattedMessage = { subject: messageData.mail_subject, from: messageData.mail_from, date: messageData.mail_date, htmlBody: messageData.mail_body, textBody: '' };
+                renderEmailContent(formattedMessage);
+                activeMessageId = messageId;
+                document.querySelectorAll('.inbox-item').forEach(el => { el.classList.remove('bg-blue-200', 'dark:bg-blue-900/50'); if (el.dataset.id == messageId) el.classList.add('bg-blue-200', 'dark:bg-blue-900/50'); });
+            } catch (error) { console.error("Failed to fetch message:", error); showAlert("កំហុស", "មិនអាចទាញយកខ្លឹមសារអ៊ីមែលបានទេ។"); } finally { hideLoader(); }
+        };
+        const startInboxCheck = () => { if (inboxCheckInterval) clearInterval(inboxCheckInterval); fetchInbox(); inboxCheckInterval = setInterval(fetchInbox, 8000); };
+        const stopInboxCheck = () => { if (inboxCheckInterval) { clearInterval(inboxCheckInterval); inboxCheckInterval = null; } };
+        
+        const renderInbox = (messages) => {
+            if (messages.length === 0) {
+                if (!inboxListEl.querySelector('#inbox-placeholder')) { inboxListEl.innerHTML = ''; inboxListEl.appendChild(inboxPlaceholder); }
+                return;
+            }
+            inboxListEl.innerHTML = '';
+            messages.sort((a, b) => new Date(b.date) - new Date(a.date));
+            messages.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = `inbox-item p-4 border-b dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${msg.id === activeMessageId ? 'bg-blue-200 dark:bg-blue-900/50' : ''}`;
+                div.dataset.id = msg.id;
+                div.innerHTML = `<p class="font-bold truncate">${msg.from}</p><p class="text-sm text-gray-700 dark:text-gray-300 truncate">${msg.subject}</p><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${new Date(msg.date).toLocaleString('km-KH')}</p>`;
+                div.addEventListener('click', () => fetchMessageContent(msg.id));
+                inboxListEl.appendChild(div);
+            });
+        };
+        const clearPreview = () => { emailContentEl.classList.add('hidden'); previewPlaceholder.classList.remove('hidden'); activeMessageId = null; };
+        const renderEmailContent = (message) => {
+            previewPlaceholder.classList.add('hidden');
+            emailContentEl.classList.remove('hidden');
+            emailSubjectEl.textContent = message.subject;
+            emailFromEl.textContent = message.from;
+            emailDateEl.textContent = new Date(message.date).toLocaleString('km-KH');
+            const iframe = document.createElement('iframe');
+            iframe.setAttribute('sandbox', 'allow-same-origin');
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            emailBodyHtmlEl.innerHTML = '';
+            emailBodyHtmlEl.appendChild(iframe);
+            iframe.contentWindow.document.open();
+            iframe.contentWindow.document.write(message.htmlBody || `<p>${message.textBody.replace(/\n/g, '<br>')}</p>`);
+            iframe.contentWindow.document.close();
+        };
+
+        copyBtn.addEventListener('click', () => { const fullEmail = `${currentEmailUserEl.value}@${domainSelectEl.value}`; navigator.clipboard.writeText(fullEmail); copyFeedback.classList.remove('hidden'); setTimeout(() => { copyFeedback.classList.add('hidden'); }, 2000); });
+        refreshBtn.addEventListener('click', fetchInbox);
+        newAddressBtn.addEventListener('click', generateNewAddress);
+        domainSelectEl.addEventListener('change', async () => { const user = currentEmailUserEl.value; const newDomain = domainSelectEl.value; if (user && newDomain) await updateEmailOnServer(user, newDomain); });
+        
+        const openHistoryModal = () => historyModal.classList.remove('hidden');
+        historyBtnDesktop.addEventListener('click', openHistoryModal);
+        historyBtnMobile.addEventListener('click', (e) => { e.preventDefault(); openHistoryModal(); profileMenuDropdown.classList.add('hidden'); });
+        closeHistoryModal.addEventListener('click', () => historyModal.classList.add('hidden'));
+        clearHistoryBtnModal.addEventListener('click', clearHistory);
+        historyModal.addEventListener('click', (e) => { if (e.target === historyModal) historyModal.classList.add('hidden'); });
+        
+        const openAboutModal = (e) => { e.preventDefault(); aboutModal.classList.remove('hidden'); };
+        aboutBtnMobile.addEventListener('click', (e) => { openAboutModal(e); profileMenuDropdown.classList.add('hidden'); });
+        aboutBtnFooter.addEventListener('click', openAboutModal);
+        closeAboutModal.addEventListener('click', () => aboutModal.classList.add('hidden'));
+        aboutModalCloseBtn.addEventListener('click', () => aboutModal.classList.add('hidden'));
+        aboutModal.addEventListener('click', (e) => { if (e.target === aboutModal) aboutModal.classList.add('hidden'); });
+
+        profileMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); profileMenuDropdown.classList.toggle('hidden'); });
+        document.addEventListener('click', (e) => { if (!profileMenuBtn.contains(e.target) && !profileMenuDropdown.contains(e.target)) profileMenuDropdown.classList.add('hidden'); });
+        
+        robotCheck.addEventListener('change', () => {
+            emailSignupBtn.disabled = !robotCheck.checked;
+        });
+
+        const togglePasswordVisibility = (passwordInput, eyeIcon, eyeOffIcon) => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeOffIcon.classList.remove('hidden');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('hidden');
+                eyeOffIcon.classList.add('hidden');
+            }
+        };
+
+        document.getElementById('toggle-signup-password').addEventListener('click', () => {
+            togglePasswordVisibility(signupPasswordInput, document.getElementById('eye-icon-signup'), document.getElementById('eye-off-icon-signup'));
+        });
+
+        document.getElementById('toggle-signup-password-confirm').addEventListener('click', () => {
+            togglePasswordVisibility(signupPasswordConfirmInput, document.getElementById('eye-icon-confirm'), document.getElementById('eye-off-icon-confirm'));
+        });
+
+
+        document.addEventListener('DOMContentLoaded', initialAuth);
+    </script>
+</body>
+</html>
+
