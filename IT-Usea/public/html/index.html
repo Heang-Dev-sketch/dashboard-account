@@ -218,20 +218,24 @@
             <main class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                  <div class="bg-gray-100 dark:bg-gray-900/50 p-4 rounded-lg mb-6">
                     <label class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 block">អាសយដ្ឋានអ៊ីមែលបច្ចុប្បន្ន</label>
-                    <div class="flex flex-col sm:flex-row items-stretch space-y-2 sm:space-y-0 sm:space-x-4">
-                        <div class="relative flex-grow w-full flex">
-                            <input id="current-email-user" type="text" class="w-full bg-white dark:bg-gray-700 text-lg font-mono p-3 border border-gray-300 dark:border-gray-600 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 z-10" readonly>
-                            <select id="domain-select" class="bg-gray-200 dark:bg-gray-700/50 text-lg font-mono p-3 border-t border-b border-r border-gray-300 dark:border-gray-600 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
-                            <span id="copy-feedback" class="absolute top-1/2 -translate-y-1/2 right-3 text-sm font-bold text-green-600 hidden z-20">បានចម្លង!</span>
+                    <div class="flex flex-col gap-2">
+                         <!-- Email input group -->
+                        <div class="flex flex-col sm:flex-row">
+                            <div class="relative flex-grow">
+                                <input id="current-email-user" type="text" class="w-full bg-white dark:bg-gray-700 text-lg font-mono p-3 border border-gray-300 dark:border-gray-600 rounded-t-md sm:rounded-l-md sm:rounded-r-none border-b-0 sm:border-b sm:border-r-0 focus:outline-none focus:ring-2 focus:ring-blue-500 z-10" readonly>
+                                <span id="copy-feedback" class="absolute top-4 sm:top-1/2 sm:-translate-y-1/2 right-3 text-sm font-bold text-green-600 hidden z-20">បានចម្លង!</span>
+                            </div>
+                            <select id="domain-select" class="w-full sm:w-auto bg-gray-200 dark:bg-gray-700/50 text-lg font-mono p-3 border-l border-b border-r sm:border-l-0 sm:border-t border-gray-300 dark:border-gray-600 rounded-b-md sm:rounded-r-md sm:rounded-l-none focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
                         </div>
-                        <div class="flex space-x-2 w-full sm:w-auto">
-                            <button id="copy-btn" title="ចម្លង" class="p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300 flex-grow sm:flex-grow-0">
+                        <!-- Buttons -->
+                        <div class="grid grid-cols-3 gap-2 w-full">
+                            <button id="copy-btn" title="ចម្លង" class="p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300 flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                             </button>
-                            <button id="refresh-btn" title="ផ្ទុកសារឡើងវិញ" class="p-3 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-300 flex-grow sm:flex-grow-0">
+                            <button id="refresh-btn" title="ផ្ទុកសារឡើងវិញ" class="p-3 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-300 flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M20 4l-4 4M4 20l4-4" /></svg>
                             </button>
-                            <button id="new-address-btn" title="បង្កើតអាសយដ្ឋានថ្មី" class="p-3 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition duration-300 flex-grow sm:flex-grow-0">
+                            <button id="new-address-btn" title="បង្កើតអាសយដ្ឋានថ្មី" class="p-3 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition duration-300 flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                             </button>
                         </div>
@@ -569,7 +573,11 @@
             }
 
             try {
-                if (!sessionToken) throw new Error("No session token");
+                if (!sessionToken) {
+                   const data = await getNewSession(); // Attempt to get a new session if it's missing
+                    if(!data) throw new Error("No session token");
+                    sessionToken = data.sid_token;
+                }
                 const response = await fetch(`${API_BASE}?f=set_email_user&email_user=${user}&domain=${domain}&sid_token=${sessionToken}`);
                 if (!response.ok) throw new Error("Failed to set email");
                 const data = await response.json();
